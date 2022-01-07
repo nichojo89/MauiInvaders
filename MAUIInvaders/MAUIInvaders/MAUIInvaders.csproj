@@ -49,6 +49,12 @@
 		<PackageReference Include="Microsoft.Graphics.Win2D" Version="1.0.0.30" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <PackageReference Include="CommunityToolkit.Maui" Version="1.0.0-pre3" />
+	  <PackageReference Include="Microsoft.Maui.Graphics.Skia" Version="6.0.101-preview.11.758" />
+	  <PackageReference Include="Microsoft.Maui.Graphics.Text.Markdig" Version="6.0.200-preview.12.852" />
+	</ItemGroup>
+
 	<PropertyGroup Condition="$(TargetFramework.Contains('-windows'))">
 		<OutputType>WinExe</OutputType>
 		<RuntimeIdentifier>win10-x64</RuntimeIdentifier>

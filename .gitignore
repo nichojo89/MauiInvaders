@@ -9,6 +9,10 @@
 *.user
 *.sln.docstates
 *.userprefs
+_ReSharper.*
+bin
+obj
+packages
 
 # ignore Xamarin.Android Resource.Designer.cs files
 **/*.Droid/**/[Rr]esource.[Dd]esigner.cs
@@ -18,6 +22,8 @@
 
 # Xamarin Components
 Components/
+CommunityToolkitTest/CommunityToolkitTest/
+
 
 # Build results
 [Dd]ebug/
