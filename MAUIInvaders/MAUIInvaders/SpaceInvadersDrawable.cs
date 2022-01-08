@@ -19,8 +19,8 @@ namespace MAUIInvaders
 
             var ms = 1000.0 / _fps;
             var ts = TimeSpan.FromMilliseconds(ms);
-            var mainDisplayInfo = DeviceDisplay.MainDisplayInfo;
-            _dpi = mainDisplayInfo.Density;
+
+            _dpi = DeviceDisplay.MainDisplayInfo.Density;
 
             Device.StartTimer(ts, TimerLoop);
 

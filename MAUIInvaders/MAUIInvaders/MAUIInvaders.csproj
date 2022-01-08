@@ -50,8 +50,8 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <PackageReference Include="CommunityToolkit.Maui" Version="1.0.0-pre3" />
-	  <PackageReference Include="Microsoft.Maui.Graphics.Skia" Version="6.0.101-preview.11.758" />
+	  <PackageReference Include="CommunityToolkit.Maui" Version="1.0.0-pre4" />
+	  <PackageReference Include="Microsoft.Maui.Graphics.Skia" Version="6.0.200-preview.12.852" />
 	  <PackageReference Include="Microsoft.Maui.Graphics.Text.Markdig" Version="6.0.200-preview.12.852" />
 	</ItemGroup>
 
