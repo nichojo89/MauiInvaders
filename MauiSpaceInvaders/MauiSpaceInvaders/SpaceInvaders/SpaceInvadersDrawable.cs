@@ -61,7 +61,7 @@ namespace MauiSpaceInvaders.SpaceInvaders
             if (_selectedCoordinate.Y == 0)
                 _selectedCoordinate = new SKPoint(_info.Center.X, _info.Center.Y);
 
-            if (_aliens.Count == 0)
+            if (_aliens.Count == -1)
             {
                 //TODO code smell
                 _isGameOver = true;
@@ -138,7 +138,7 @@ namespace MauiSpaceInvaders.SpaceInvaders
             _isGameOver = _aliens
                 .Select(x => x.Bounds.Bottom)
                 .Any(x => x > _jet.Bounds.Top);
-
+            _isGameOver = false;
             if (_isGameOver)
             {
                 PresentEndGame(canvas, GameOver);
@@ -164,7 +164,14 @@ namespace MauiSpaceInvaders.SpaceInvaders
             _bullets.RemoveAll(x => x.Y < 0);
 
             var textWidth = _secondaryPaint.MeasureText(Fire);
-            //canvas.DrawText(Fire, new SKPoint(_info.Rect.Width - (textWidth / 2) - 100, _info.Rect.Height - (100 - (_secondaryPaint.TextSize / 3))), _secondaryPaint);
+
+            canvas.FontColor = Colors.White;
+            canvas.FontSize = 22;
+
+            canvas.SetToSystemFont();
+
+            var d = _secondaryPaint.MeasureText(Fire);
+            canvas.DrawString(Fire, _info.Width - (d * 2), _info.Height - 150, 380, 100, HorizontalAlignment.Left, VerticalAlignment.Center);
         }
         /// <summary>
         /// TODO create PR to add ParseSVGPathData to Maui.Graphics
@@ -205,7 +212,7 @@ namespace MauiSpaceInvaders.SpaceInvaders
             for (var i = 0; i < AlienCount; i++)
             {
                 var alien = SKPath.ParseSvgPathData(Constants.AlienSVG);
-                var alienLength = (float)_dpi * 33;
+                var alienLength =  30;
                 var alienScaleX = alienLength / alien.Bounds.Width;
                 var alienScaleY = alienLength / alien.Bounds.Height;
 
@@ -259,6 +266,10 @@ namespace MauiSpaceInvaders.SpaceInvaders
             var width = _secondaryPaint.MeasureText("Play");
             //TODO canvas.DrawText("Play", new SKPoint(buttonCentre.X - (width / 2), buttonCentre.Y + (_secondaryPaint.TextSize / 3)), _secondaryPaint);
         }
+
+        //There is an issue  with Maui Essentials DisplayInfo so we must manually assign for now
+        private int _height = 650;
+        private int _width = 1200;
 
         private PathF _jet;
         private double _dpi;
