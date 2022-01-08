@@ -1,4 +1,4 @@
-﻿namespace MAUIInvaders;
+﻿namespace MauiSpaceInvaders;
 
 public partial class App : Application
 {

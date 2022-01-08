@@ -1,6 +1,6 @@
 ﻿using Foundation;
 
-namespace MAUIInvaders;
+namespace MauiSpaceInvaders;
 
 [Register("AppDelegate")]
 public class AppDelegate : MauiUIApplicationDelegate

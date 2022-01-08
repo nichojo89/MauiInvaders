@@ -1,7 +1,7 @@
 ﻿using ObjCRuntime;
 using UIKit;
 
-namespace MAUIInvaders;
+namespace MauiSpaceInvaders;
 
 public class Program
 {

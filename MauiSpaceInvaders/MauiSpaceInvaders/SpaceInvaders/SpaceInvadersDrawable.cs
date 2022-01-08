@@ -1,4 +1,5 @@
-﻿using Microsoft.Maui.Graphics.Skia;
+﻿using Microsoft.Maui.Graphics;
+using Microsoft.Maui.Graphics.Skia;
 using Microsoft.Maui.Graphics.Text;
 using SkiaSharp;
 using System;
@@ -8,21 +9,25 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MAUIInvaders
+namespace MauiSpaceInvaders.SpaceInvaders
 {
     internal class SpaceInvadersDrawable : IDrawable
     {
         public SpaceInvadersDrawable()
         {
-            
-           //TODO EnableTouchEvents = true;
+            //TODO EnableTouchEvents = true;
 
-            var ms = 1000.0 / _fps;
-            var ts = TimeSpan.FromMilliseconds(ms);
 
-            _dpi = DeviceDisplay.MainDisplayInfo.Density;
+            try
+            {
+                _dpi = DeviceDisplay.MainDisplayInfo.Density;
+            }
+            catch (Exception e)
+            {
+                _dpi = 3;
+            }
 
-            Device.StartTimer(ts, TimerLoop);
+           
 
             _primaryPaint = new SKPaint()
             {
@@ -36,7 +41,9 @@ namespace MAUIInvaders
                 TextSize = 36,
                 Color = Color.FromHex("#000000").AsSKColor()
             };
+            
         }
+
 
         public void Draw(ICanvas canvas, RectangleF dirtyRect)
         {
@@ -70,33 +77,41 @@ namespace MAUIInvaders
             //TODO did this work?
             canvas.ResetState();
 
-            _jet = SKPath.ParseSvgPathData(Constants.JetSVG);
+            var jet = SKPath.ParseSvgPathData(Constants.JetSVG);
 
+            _jet = new PathF();
+            _jet = ParseSVGPathData(jet.Points);
+            
+            //TODO make _primaryPaint
+            canvas.StrokeColor = Colors.Green;
+            //canvas.FillColor = Colors.Green;
             // calculate the scaling need to fit to screen
             var scaleX = 100 / _jet.Bounds.Width;
-
-            var jetMatrix = SKMatrix.CreateTranslation(
-                _selectedCoordinate.X - (_jet.Bounds.Width * scaleX),
-                _info.Height - _jet.Bounds.Height - _bulletDiameter);
+            
+            var jetMatrix = System.Numerics.Matrix3x2.CreateTranslation(_selectedCoordinate.X - (_jet.Bounds.Width * scaleX),
+                 _info.Height - _jet.Bounds.Height - _bulletDiameter);
 
             // draw the jet
             _jet.Transform(jetMatrix);
-            //canvas.DrawPath(_jet, _primaryPaint);
+            canvas.DrawPath(_jet);
 
             //Draw fire button
-            _buttonPath = new SKPath();
+            _buttonPath = new PathF();
 
-            var buttonCentre = new SKPoint(_info.Width - 100, _info.Height - 100);
-            _buttonPath.MoveTo(buttonCentre);
-            _buttonPath.LineTo(new SKPoint(buttonCentre.X, buttonCentre.Y));
-            _buttonPath.ArcTo(new SKRect(
-                buttonCentre.X - (_buttonDiameter / 2),
-                buttonCentre.Y - (_buttonDiameter / 2),
-                buttonCentre.X + (_buttonDiameter / 2),
-                buttonCentre.Y + (_buttonDiameter / 2)
-                ), 0, 350, true);
+            var buttonCentre = new PointF(_info.Width - 100, _info.Height - 100);
 
-            //canvas.DrawPath(_buttonPath, _primaryPaint);
+            _buttonPath.AddArc(
+               new PointF(buttonCentre.X - (_buttonDiameter / 2),
+                buttonCentre.Y - (_buttonDiameter / 2)),
+               new PointF(buttonCentre.X + (_buttonDiameter / 2),
+                buttonCentre.Y + (_buttonDiameter / 2)),
+                0,
+                359,
+                false);
+
+            _buttonPath.Close();
+
+            canvas.DrawPath(_buttonPath);
 
             //Draw bullets
             for (int i = _bullets.Count - 1; i > -1; i--)
@@ -111,33 +126,76 @@ namespace MAUIInvaders
                 if (alienTarged)
                     _bullets.RemoveAt(i);
             }
-        }
 
-        private bool TimerLoop()
-        {
-            // get the elapsed time from the stopwatch because the 1/30 timer interval is not accurate and can be off by 2 ms
-            var dt = _stopWatch.Elapsed.TotalSeconds;
+            //Has an alien reached a horizontal edge of game?
+            var switched = _aliens.Select(x => x.Bounds.Left)
+                .Any(x => x < 0
+                || x > _buttonPath.Bounds.Left - (_jet.Bounds.Width / 2));
 
-            _stopWatch.Restart();
+            _aliensSwarmingRight = switched ? !_aliensSwarmingRight : _aliensSwarmingRight;
 
-            // calculate current fps
-            var fps = dt > 0 ? 1.0 / dt : 0;
+            //Has an alien hit the ships y axis?
+            _isGameOver = _aliens
+                .Select(x => x.Bounds.Bottom)
+                .Any(x => x > _jet.Bounds.Top);
 
-            // when the fps is too low reduce the load by skipping the frame
-            if (fps < _fps / 2)
-                return true;
-
-            _fpsCount++;
-
-            if (_fpsCount == 20)
+            if (_isGameOver)
             {
-                _fpsCount = 0;
+                PresentEndGame(canvas, GameOver);
+                return;
             }
-            //TODO
-            //InvalidateSurface();
 
-            return true;
+            //Draw aliens
+            for (var i = 0; i < _aliens.Count; i++)
+            {
+                //Move Aliens
+                var alienMatrix = SKMatrix.CreateTranslation(
+                _aliensSwarmingRight ? _alienSpeed : _alienSpeed * -1,
+                switched ? 50 : 0);
+
+                _aliens[i].Transform(alienMatrix);
+
+                var alienPath = ParseSVGPathData(_aliens[i].Points);
+                canvas.DrawPath(alienPath);
+            }
+
+
+            //Remove bullets that leave screen
+            _bullets.RemoveAll(x => x.Y < 0);
+
+            var textWidth = _secondaryPaint.MeasureText(Fire);
+            //canvas.DrawText(Fire, new SKPoint(_info.Rect.Width - (textWidth / 2) - 100, _info.Rect.Height - (100 - (_secondaryPaint.TextSize / 3))), _secondaryPaint);
         }
+        /// <summary>
+        /// TODO create PR to add ParseSVGPathData to Maui.Graphics
+        /// </summary>
+        /// <param name="points"></param>
+        /// <returns></returns>
+        private PathF ParseSVGPathData(SKPoint[] points)
+        {
+            var path = new PathF();
+            for (int i = 0; i < points.Count(); i++)
+            {
+                var point = new PointF(points[i].X, points[i].Y);
+
+                if (i == 0)
+                {
+                    path.MoveTo(point);
+                }
+                else if (i == points.Count() - 1)
+                {
+                    path.LineTo(point);
+                    path.Close();
+                }
+                else
+                {
+                    path.LineTo(point);
+                }
+            }
+            return path;
+        }
+
+     
 
         private void LoadAliens()
         {
@@ -155,8 +213,8 @@ namespace MAUIInvaders
 
                 //how many aliens fit into legnth
                 //TODO can this be moved outside the loop?
-                var a = (_info.Width - _buttonDiameter) / (alien.Bounds.Width + AlienSpacing);
-                var columnCount = Convert.ToInt32(a - 2);
+                var scaledAlienLength = (_info.Width - _buttonDiameter) / (alien.Bounds.Width + AlienSpacing);
+                var columnCount = Convert.ToInt32(scaledAlienLength - 2);
 
                 var columnIndex = i % columnCount;
                 var rowIndex = Math.Floor(i / (double)columnCount);
@@ -178,46 +236,45 @@ namespace MAUIInvaders
             //TODO did that work canvas.Clear();
             canvas.ResetState();
 
-            
+
 
             var textWidth = _primaryPaint.MeasureText(title);
-            IAttributedText attributedText = MarkdownAttributedTextReader.Read(title);
-           
+            //IAttributedText attributedText =  MarkdownAttributedTextReader.Read(title);
+
             //TODO canvas.DrawText(attributedText, _info.Center.X - (textWidth / 2), _info.Center.Y,99,99, _primaryPaint);
 
-            _buttonPath = new SKPath();
+            _buttonPath = new PathF();
 
-            var buttonCentre = new SKPoint(_info.Width - 100, _info.Height - 100);
-            _buttonPath.MoveTo(buttonCentre);
-            _buttonPath.LineTo(new SKPoint(buttonCentre.X, buttonCentre.Y));
-            _buttonPath.ArcTo(new SKRect(
-                buttonCentre.X - (_buttonDiameter / 2),
-                buttonCentre.Y - (_buttonDiameter / 2),
-                buttonCentre.X + (_buttonDiameter / 2),
-                buttonCentre.Y + (_buttonDiameter / 2)
-                ), 0, 350, true);
+            var buttonCentre = new SKPoint(_info.Width - 100, _info.Height - 100).AsPointF();
+            _buttonPath.AddArc(
+              new PointF(buttonCentre.X - (_buttonDiameter / 2),
+               buttonCentre.Y - (_buttonDiameter / 2)),
+              new PointF(buttonCentre.X + (_buttonDiameter / 2),
+               buttonCentre.Y + (_buttonDiameter / 2)),
+               0,
+               360,
+               true);
 
             //TODO canvas.DrawPath(_buttonPath, _primaryPaint);
             var width = _secondaryPaint.MeasureText("Play");
             //TODO canvas.DrawText("Play", new SKPoint(buttonCentre.X - (width / 2), buttonCentre.Y + (_secondaryPaint.TextSize / 3)), _secondaryPaint);
         }
 
-        private SKPath _jet;
+        private PathF _jet;
         private double _dpi;
         private bool _isGameOver;
         private RectangleF _info;
-        private int _fpsCount = 0;
-        private SKPath _buttonPath;
+        private PathF _buttonPath;
         private bool _aliensLoaded;
+        private int _alienSpeed = 10;
         private int _bulletSpeed = 10;
         private SKPaint _primaryPaint;
-        private const double _fps = 30;
         private int _bulletDiameter = 4;
         private SKPaint _secondaryPaint;
         private int _buttonDiameter = 100;
+        private bool _aliensSwarmingRight;
         private SKPoint _selectedCoordinate;
         private List<SKPath> _aliens = new List<SKPath>();
         private List<SKPoint> _bullets = new List<SKPoint>();
-        private readonly Stopwatch _stopWatch = new Stopwatch();
     }
 }

@@ -1,0 +1,12 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MauiSpaceInvaders.MainPage"
+             BackgroundColor="Black"
+	xmlns:spaceInvaders="clr-namespace:MauiSpaceInvaders.SpaceInvaders;assembly=MauiSpaceInvaders">
+	<ContentPage.Resources>
+		<spaceInvaders:SpaceInvadersDrawable x:Key="drawable" />
+	</ContentPage.Resources>
+	<StackLayout>
+		<GraphicsView x:Name="Game"/>
+	</StackLayout>
+</ContentPage>

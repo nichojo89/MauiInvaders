@@ -1,7 +1,7 @@
 ﻿using Android.App;
 using Android.Runtime;
 
-namespace MAUIInvaders;
+namespace MauiSpaceInvaders;
 
 [Application]
 public class MainApplication : MauiApplication
