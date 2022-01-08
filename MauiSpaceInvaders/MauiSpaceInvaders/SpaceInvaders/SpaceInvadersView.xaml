@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+<ContentView x:Name="Root" 
+             xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="MauiSpaceInvaders.SpaceInvadersView"
              xmlns:spaceInvaders="clr-namespace:MauiSpaceInvaders.SpaceInvaders;assembly=MauiSpaceInvaders">
@@ -13,6 +14,7 @@
             <RowDefinition Height="0.2*" />
         </Grid.RowDefinitions>
         <spaceInvaders:SpaceInvadersGraphicsView Grid.RowSpan="2"
+                                                 XAxis="0.7"
 												 WidthRequest="1200" 
 												 HeightRequest="650" />
         <Button Text="Fire"
@@ -21,6 +23,7 @@
 				BackgroundColor="Green"
 				VerticalOptions="EndAndExpand"/>
         <Slider Margin="10"
+                x:Name="slider"
 				Grid.Row="1"
 				Grid.Column="1" 
 				ThumbColor="Green"

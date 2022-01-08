@@ -1,18 +1,12 @@
-﻿using Microsoft.Maui.Graphics;
-using Microsoft.Maui.Graphics.Skia;
-using Microsoft.Maui.Graphics.Text;
+﻿using Microsoft.Maui.Graphics.Skia;
 using SkiaSharp;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MauiSpaceInvaders.SpaceInvaders
 {
     internal class SpaceInvadersDrawable : IDrawable
     {
+        public double XAxis { get; set; }
+
         public SpaceInvadersDrawable()
         {
             //TODO EnableTouchEvents = true;
@@ -58,8 +52,9 @@ namespace MauiSpaceInvaders.SpaceInvaders
             if (!_aliensLoaded)
                 LoadAliens();
 
-            if (_selectedCoordinate.Y == 0)
-                _selectedCoordinate = new SKPoint(_info.Center.X, _info.Center.Y);
+            //TOODO this could be problimatic
+            if (XAxis == 0)
+                XAxis = _info.Center.Y;
 
             if (_aliens.Count == -1)
             {
@@ -93,7 +88,7 @@ namespace MauiSpaceInvaders.SpaceInvaders
             var jetScaleMatrix = System.Numerics.Matrix3x2.CreateScale(0.4f);
             _jet.Transform(jetScaleMatrix);
 
-            var jetTranslationMatrix = System.Numerics.Matrix3x2.CreateTranslation(_selectedCoordinate.X - (_jet.Bounds.Width * scaleX),
+            var jetTranslationMatrix = System.Numerics.Matrix3x2.CreateTranslation((float)(XAxis * _info.Width) - (_jet.Bounds.Width * scaleX),
                  _info.Height - _jet.Bounds.Height - _bulletDiameter);
             
             _jet.Transform(jetTranslationMatrix);
@@ -291,7 +286,6 @@ namespace MauiSpaceInvaders.SpaceInvaders
         private SKPaint _secondaryPaint;
         private int _buttonDiameter = 100;
         private bool _aliensSwarmingRight;
-        private SKPoint _selectedCoordinate;
         private List<SKPath> _aliens = new List<SKPath>();
         private List<SKPoint> _bullets = new List<SKPoint>();
     }

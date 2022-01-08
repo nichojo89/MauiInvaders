@@ -4,10 +4,23 @@ namespace MauiSpaceInvaders.SpaceInvaders
 {
     internal class SpaceInvadersGraphicsView : GraphicsView
     {
+        public static readonly BindableProperty XAxisPoperty = BindableProperty.Create(nameof(XAxis),
+            typeof(double),
+            typeof(SpaceInvadersGraphicsView),
+            0.5,
+            propertyChanged: (b,o,n) => {
+                Drawable.XAxis = (double)n;
+            });
+        public double XAxis
+        {
+            get => (double)GetValue(XAxisPoperty);
+            set => SetValue(XAxisPoperty, value);
+        }
+        public static SpaceInvadersDrawable Drawable;
         public SpaceInvadersGraphicsView()
         {
-            Drawable = new SpaceInvadersDrawable();
-            
+            base.Drawable = Drawable = new SpaceInvadersDrawable();
+
             var ms = 1000.0 / _fps;
             var ts = TimeSpan.FromMilliseconds(ms);
             Device.StartTimer(ts, TimerLoop);
