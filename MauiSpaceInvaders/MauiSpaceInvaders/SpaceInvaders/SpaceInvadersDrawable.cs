@@ -80,6 +80,8 @@ namespace MauiSpaceInvaders.SpaceInvaders
             var jet = SKPath.ParseSvgPathData(Constants.JetSVG);
 
             _jet = new PathF();
+
+            //TODO raise issuee that there is no PraseSVGPathData on PathF
             _jet = ParseSVGPathData(jet.Points);
             
             //TODO make _primaryPaint
@@ -87,12 +89,16 @@ namespace MauiSpaceInvaders.SpaceInvaders
             //canvas.FillColor = Colors.Green;
             // calculate the scaling need to fit to screen
             var scaleX = 100 / _jet.Bounds.Width;
-            
-            var jetMatrix = System.Numerics.Matrix3x2.CreateTranslation(_selectedCoordinate.X - (_jet.Bounds.Width * scaleX),
+
+            var jetScaleMatrix = System.Numerics.Matrix3x2.CreateScale(0.4f);
+            _jet.Transform(jetScaleMatrix);
+
+            var jetTranslationMatrix = System.Numerics.Matrix3x2.CreateTranslation(_selectedCoordinate.X - (_jet.Bounds.Width * scaleX),
                  _info.Height - _jet.Bounds.Height - _bulletDiameter);
+            
+            _jet.Transform(jetTranslationMatrix);
 
             // draw the jet
-            _jet.Transform(jetMatrix);
             canvas.DrawPath(_jet);
 
             //Draw fire button
@@ -117,7 +123,7 @@ namespace MauiSpaceInvaders.SpaceInvaders
             for (int i = _bullets.Count - 1; i > -1; i--)
             {
                 _bullets[i] = new SKPoint(_bullets[i].X, _bullets[i].Y - _bulletSpeed);
-                //TODO canvas.DrawCircle(_bullets[i], _bulletDiameter, _primaryPaint);
+                canvas.DrawCircle(_bullets[i].AsPointF(), _bulletDiameter);
 
                 var alienTarged = _aliens.Any(alien => alien.Contains(_bullets[i].X, _bullets[i].Y));
                 //Remove any aliens touched by the bullet
@@ -173,6 +179,7 @@ namespace MauiSpaceInvaders.SpaceInvaders
             var d = _secondaryPaint.MeasureText(Fire);
             canvas.DrawString(Fire, _info.Width - (d * 2), _info.Height - 150, 380, 100, HorizontalAlignment.Left, VerticalAlignment.Center);
         }
+        
         /// <summary>
         /// TODO create PR to add ParseSVGPathData to Maui.Graphics
         /// </summary>

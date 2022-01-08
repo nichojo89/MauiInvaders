@@ -2,16 +2,15 @@
 
 namespace MauiSpaceInvaders.SpaceInvaders
 {
-    internal class SpaceInvadersGame : GraphicsView
+    internal class SpaceInvadersGraphicsView : GraphicsView
     {
-        public SpaceInvadersGame()
+        public SpaceInvadersGraphicsView()
         {
             Drawable = new SpaceInvadersDrawable();
             
             var ms = 1000.0 / _fps;
             var ts = TimeSpan.FromMilliseconds(ms);
             Device.StartTimer(ts, TimerLoop);
-
         }
         private bool TimerLoop()
         {
@@ -38,6 +37,7 @@ namespace MauiSpaceInvaders.SpaceInvaders
 
             return true;
         }
+
 
         private int _fpsCount = 0;
         private const double _fps = 30;
