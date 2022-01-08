@@ -2,32 +2,6 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="MauiSpaceInvaders.MainPage"
              BackgroundColor="Black"
-	xmlns:spaceInvaders="clr-namespace:MauiSpaceInvaders.SpaceInvaders;assembly=MauiSpaceInvaders">
-	<ContentPage.Resources>
-		<spaceInvaders:SpaceInvadersDrawable x:Key="Drawable" />
-	</ContentPage.Resources>
-	<Grid>
-		<Grid.ColumnDefinitions>
-			<ColumnDefinition Width="0.8*" />
-			<ColumnDefinition Width="0.2*" />
-		</Grid.ColumnDefinitions>
-		<Grid.RowDefinitions>
-			<RowDefinition Height="0.8*" />
-			<RowDefinition Height="0.2*" />
-		</Grid.RowDefinitions>
-		<spaceInvaders:SpaceInvadersGraphicsView Grid.RowSpan="2"
-												 WidthRequest="1200" 
-												 HeightRequest="650" />
-		<Button Text="Fire"
-				Grid.Row="0"
-				Grid.Column="1"
-				BackgroundColor="Green"
-				VerticalOptions="EndAndExpand"/>
-		<Slider Margin="10"
-				Grid.Row="1"
-				Grid.Column="1" 
-				ThumbColor="Green"
-				MaximumTrackColor="Red" 
-				MinimumTrackColor="Blue"/>
-	</Grid>
+			 xmlns:spaceInvaders="clr-namespace:MauiSpaceInvaders;assembly=MauiSpaceInvaders">
+	<spaceInvaders:SpaceInvadersView />
 </ContentPage>

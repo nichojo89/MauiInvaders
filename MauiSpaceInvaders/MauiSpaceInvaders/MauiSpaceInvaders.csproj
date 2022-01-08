@@ -53,6 +53,12 @@
 	  <PackageReference Include="Microsoft.Maui.Graphics.Skia" Version="6.0.200-preview.12.852" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <MauiXaml Update="SpaceInvaders\SpaceInvadersView.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	</ItemGroup>
+
 	<PropertyGroup Condition="$(TargetFramework.Contains('-windows'))">
 		<OutputType>WinExe</OutputType>
 		<RuntimeIdentifier>win10-x64</RuntimeIdentifier>
