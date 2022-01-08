@@ -7,9 +7,7 @@
 		<spaceInvaders:SpaceInvadersDrawable x:Key="Drawable" />
 	</ContentPage.Resources>
 	<StackLayout>
-		<GraphicsView x:Name="Game"
-					  WidthRequest="1200"
-					  HeightRequest="650"
-					  Drawable="{StaticResource Drawable}"/>
+		<spaceInvaders:SpaceInvadersGame WidthRequest="1200"
+										 HeightRequest="650" />
 	</StackLayout>
 </ContentPage>
