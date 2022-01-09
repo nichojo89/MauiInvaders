@@ -89,6 +89,13 @@ namespace MauiSpaceInvaders.SpaceInvaders
 
             _jetMidX = _jet.Bounds.Center.X;
 
+            var jetDown = _bullets.Any(b => _jet.Bounds.Contains(b.Point.X, b.Point.Y));
+            if (jetDown)
+            {
+                PresentEndGame(canvas, Constants.GameOver);
+                return;
+            }
+
             //Draw the jet
             canvas.FillPath(_jet);
 
@@ -224,6 +231,7 @@ namespace MauiSpaceInvaders.SpaceInvaders
             _bullets.Clear();
 
             LoadAliens();
+            ButtonText = Constants.Fire;
         }
 
         /// <summary>
@@ -233,7 +241,7 @@ namespace MauiSpaceInvaders.SpaceInvaders
         /// <param name="startingPosition"></param>
         public void Fire(bool isPlayer, Bullet startingPosition = null)
         {
-            if (IsGameOver)
+            if (IsGameOver && isPlayer)
                 Reset();
             else
             {
