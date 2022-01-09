@@ -14,20 +14,21 @@
             <RowDefinition Height="0.2*" />
         </Grid.RowDefinitions>
         <spaceInvaders:SpaceInvadersGraphicsView Grid.RowSpan="2"
-                                                 XAxis="0.7"
-												 WidthRequest="1200" 
-												 HeightRequest="650" />
+												 WidthRequest="1200"
+												 HeightRequest="650"
+                                                 x:Name="spaceInvaders" />
         <Button Text="Fire"
 				Grid.Row="0"
 				Grid.Column="1"
 				BackgroundColor="Green"
 				VerticalOptions="EndAndExpand"/>
         <Slider Margin="10"
-                x:Name="slider"
+                Maximum="1"
 				Grid.Row="1"
 				Grid.Column="1" 
 				ThumbColor="Green"
 				MaximumTrackColor="Red" 
-				MinimumTrackColor="Blue"/>
+				MinimumTrackColor="Blue"
+                Value="{Binding Source={x:Reference spaceInvaders}, Path=XAxis,Mode=TwoWay}"/>
     </Grid>
 </ContentView>

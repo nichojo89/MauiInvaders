@@ -14,6 +14,7 @@ namespace MauiSpaceInvaders.SpaceInvaders
 
             try
             {
+                
                 _dpi = DeviceDisplay.MainDisplayInfo.Density;
             }
             catch (Exception e)
@@ -42,7 +43,6 @@ namespace MauiSpaceInvaders.SpaceInvaders
         public void Draw(ICanvas canvas, RectangleF dirtyRect)
         {
             //TODO aliens are not attacking
-
             _info = dirtyRect;
 
             const string Fire = "Fire";
@@ -51,10 +51,6 @@ namespace MauiSpaceInvaders.SpaceInvaders
 
             if (!_aliensLoaded)
                 LoadAliens();
-
-            //TOODO this could be problimatic
-            if (XAxis == 0)
-                XAxis = _info.Center.Y;
 
             if (_aliens.Count == -1)
             {
@@ -88,31 +84,13 @@ namespace MauiSpaceInvaders.SpaceInvaders
             var jetScaleMatrix = System.Numerics.Matrix3x2.CreateScale(0.4f);
             _jet.Transform(jetScaleMatrix);
 
-            var jetTranslationMatrix = System.Numerics.Matrix3x2.CreateTranslation((float)(XAxis * _info.Width) - (_jet.Bounds.Width * scaleX),
+            var jetTranslationMatrix = System.Numerics.Matrix3x2.CreateTranslation((float)(XAxis * (_info.Width - _jet.Bounds.Width)),
                  _info.Height - _jet.Bounds.Height - _bulletDiameter);
             
             _jet.Transform(jetTranslationMatrix);
 
             // draw the jet
             canvas.DrawPath(_jet);
-
-            //Draw fire button
-            _buttonPath = new PathF();
-
-            var buttonCentre = new PointF(_info.Width - 100, _info.Height - 100);
-
-            _buttonPath.AddArc(
-               new PointF(buttonCentre.X - (_buttonDiameter / 2),
-                buttonCentre.Y - (_buttonDiameter / 2)),
-               new PointF(buttonCentre.X + (_buttonDiameter / 2),
-                buttonCentre.Y + (_buttonDiameter / 2)),
-                0,
-                359,
-                false);
-
-            _buttonPath.Close();
-
-            canvas.DrawPath(_buttonPath);
 
             //Draw bullets
             for (int i = _bullets.Count - 1; i > -1; i--)
@@ -129,9 +107,9 @@ namespace MauiSpaceInvaders.SpaceInvaders
             }
 
             //Has an alien reached a horizontal edge of game?
-            var switched = _aliens.Select(x => x.Bounds.Left)
-                .Any(x => x < 0
-                || x > _buttonPath.Bounds.Left - (_jet.Bounds.Width / 2));
+            var switched = _aliens.Select(x => x.Bounds)
+                .Any(x => x.Left < 0
+                || x.Right > _info.Right);
 
             _aliensSwarmingRight = switched ? !_aliensSwarmingRight : _aliensSwarmingRight;
 
@@ -163,16 +141,6 @@ namespace MauiSpaceInvaders.SpaceInvaders
 
             //Remove bullets that leave screen
             _bullets.RemoveAll(x => x.Y < 0);
-
-            var textWidth = _secondaryPaint.MeasureText(Fire);
-
-            canvas.FontColor = Colors.White;
-            canvas.FontSize = 22;
-
-            canvas.SetToSystemFont();
-
-            var d = _secondaryPaint.MeasureText(Fire);
-            canvas.DrawString(Fire, _info.Width - (d * 2), _info.Height - 150, 380, 100, HorizontalAlignment.Left, VerticalAlignment.Center);
         }
         
         /// <summary>
@@ -252,17 +220,6 @@ namespace MauiSpaceInvaders.SpaceInvaders
 
             //TODO canvas.DrawText(attributedText, _info.Center.X - (textWidth / 2), _info.Center.Y,99,99, _primaryPaint);
 
-            _buttonPath = new PathF();
-
-            var buttonCentre = new SKPoint(_info.Width - 100, _info.Height - 100).AsPointF();
-            _buttonPath.AddArc(
-              new PointF(buttonCentre.X - (_buttonDiameter / 2),
-               buttonCentre.Y - (_buttonDiameter / 2)),
-              new PointF(buttonCentre.X + (_buttonDiameter / 2),
-               buttonCentre.Y + (_buttonDiameter / 2)),
-               0,
-               360,
-               true);
 
             //TODO canvas.DrawPath(_buttonPath, _primaryPaint);
             var width = _secondaryPaint.MeasureText("Play");
@@ -271,13 +228,12 @@ namespace MauiSpaceInvaders.SpaceInvaders
 
         //There is an issue  with Maui Essentials DisplayInfo so we must manually assign for now
         private int _height = 650;
-        private int _width = 1200;
+        private int _width = 800;
 
         private PathF _jet;
         private double _dpi;
         private bool _isGameOver;
         private RectangleF _info;
-        private PathF _buttonPath;
         private bool _aliensLoaded;
         private int _alienSpeed = 10;
         private int _bulletSpeed = 10;
