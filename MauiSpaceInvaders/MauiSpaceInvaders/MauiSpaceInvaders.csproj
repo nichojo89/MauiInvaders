@@ -50,6 +50,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <None Remove="SpaceInvaders\SpaceInvadersGraphicsView.cs~RF21ecf2a.TMP" />
 	  <None Remove="SpaceInvaders\SpaceInvadersGraphicsView.cs~RF45e6563.TMP" />
 	</ItemGroup>
 

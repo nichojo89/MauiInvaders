@@ -33,12 +33,6 @@ namespace MauiSpaceInvaders.SpaceInvaders
         }
         private bool TimerLoop()
         {
-            if (_stopWatch.Elapsed.Seconds == 1 || _stopWatch.Elapsed.Seconds > _elapsedSeconds)
-            {
-                
-                _elapsedSeconds = _stopWatch.Elapsed.Seconds;
-            }
-
             // get the elapsed time from the stopwatch because the 1/30 timer interval is not accurate and can be off by 2 ms
             var dt = _stopWatch.Elapsed.TotalSeconds;
             _stopWatch.Restart();

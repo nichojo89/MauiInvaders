@@ -29,7 +29,7 @@ namespace MauiSpaceInvaders.SpaceInvaders
         /// <summary>
         /// Fires alien shot
         /// </summary>
-        public  void AlienFire()
+        public void AlienFire()
         {
             if (_aliens.Count() == 0)
             {
@@ -76,7 +76,7 @@ namespace MauiSpaceInvaders.SpaceInvaders
             canvas.StrokeColor = Colors.Green;
             canvas.FillColor = Colors.Green;
 
-            // calculate the scaling need to fit to screen
+            //Calculate the scaling need to fit to screen
             var scaleX = 100 / _jet.Bounds.Width;
 
             var jetScaleMatrix = System.Numerics.Matrix3x2.CreateScale(Scale);
@@ -89,7 +89,7 @@ namespace MauiSpaceInvaders.SpaceInvaders
 
             _jetMidX = _jet.Bounds.Center.X;
 
-            // draw the jet
+            //Draw the jet
             canvas.FillPath(_jet);
 
             //Draw bullets
@@ -132,7 +132,7 @@ namespace MauiSpaceInvaders.SpaceInvaders
         }
         
         /// <summary>
-        /// TODO Create PR to add ParseSVGPathData to Maui.Graphics
+        /// TODO Raise issue to add ParseSVGPathData to PathF in Maui.Graphics
         /// </summary>
         /// <param name="points"></param>
         /// <returns></returns>
@@ -214,6 +214,19 @@ namespace MauiSpaceInvaders.SpaceInvaders
         }
 
         /// <summary>
+        /// Resets game
+        /// </summary>
+        private void Reset()
+        {
+            IsGameOver = false;
+
+            _aliens.Clear();
+            _bullets.Clear();
+
+            LoadAliens();
+        }
+
+        /// <summary>
         /// Fires bullet for 
         /// </summary>
         /// <param name="isPlayer"></param>
@@ -221,19 +234,15 @@ namespace MauiSpaceInvaders.SpaceInvaders
         public void Fire(bool isPlayer, Bullet startingPosition = null)
         {
             if (IsGameOver)
+                Reset();
+            else
             {
-                IsGameOver = false;
-
-                _aliens.Clear();
-                _bullets.Clear();
-                LoadAliens();
-            }
-            else {
                 if (isPlayer)
                 {
                     _bullets.Add(new Bullet(new SKPoint(_jetMidX, _info.Height - _jet.Bounds.Height - BulletDiameter - 20), true));
                 }
-                else {
+                else
+                {
                     _bullets.Add(startingPosition);
                 }
             }
