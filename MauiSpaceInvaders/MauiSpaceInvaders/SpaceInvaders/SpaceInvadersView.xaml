@@ -31,6 +31,6 @@
 				ThumbColor="Green"
 				MaximumTrackColor="Red" 
 				MinimumTrackColor="Blue"
-                Value="{Binding Source={x:Reference spaceInvaders}, Path=XAxis}"/>
+                Value="{Binding Source={x:Reference spaceInvaders}, Path=XAxisScale}"/>
     </Grid>
 </ContentView>

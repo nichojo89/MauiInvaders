@@ -63,19 +63,22 @@ namespace MauiSpaceInvaders.SpaceInvaders
             if (!_aliensLoaded)
                 LoadAliens();
 
-            if (_aliens.Count == -1)
+            if (_jet != null)
             {
-                //TODO code smell
-                IsGameOver = true;
-                PresentEndGame(canvas, YouWin);
-                return;
+                //Has an alien hit the ships y axis?
+                IsGameOver = _aliens
+                    .Select(x => x.Bounds.Bottom)
+                    .Any(x => x > _jet.Bounds.Top);
+
+                if (IsGameOver || _aliens.Count == 0)
+                {
+                    PresentEndGame(canvas, _aliens.Count == 0
+                        ? YouWin
+                        : GameOver);
+                    return;
+                }
             }
 
-            if (IsGameOver)
-            {
-                PresentEndGame(canvas, GameOver);
-                return;
-            }
             //TODO did this work?
             canvas.ResetState();
 
@@ -83,12 +86,12 @@ namespace MauiSpaceInvaders.SpaceInvaders
 
             _jet = new PathF();
 
-            //TODO raise issuee that there is no PraseSVGPathData on PathF
             _jet = ParseSVGPathData(jet.Points);
             
             //TODO make _primaryPaint
             canvas.StrokeColor = Colors.Green;
             //canvas.FillColor = Colors.Green;
+
             // calculate the scaling need to fit to screen
             var scaleX = 100 / _jet.Bounds.Width;
 
@@ -126,25 +129,6 @@ namespace MauiSpaceInvaders.SpaceInvaders
 
             _aliensSwarmingRight = switched ? !_aliensSwarmingRight : _aliensSwarmingRight;
 
-            //Has an alien hit the ships y axis?
-            IsGameOver = _aliens
-                .Select(x => x.Bounds.Bottom)
-                .Any(x => x > _jet.Bounds.Top);
-
-            if (_aliens.Count == 0)
-            {
-                //TODO code smell
-                IsGameOver = true;
-                PresentEndGame(canvas, YouWin);
-                return;
-            }
-
-            if (IsGameOver)
-            {
-                PresentEndGame(canvas, GameOver);
-                return;
-            }
-
             //Draw aliens
             for (var i = 0; i < _aliens.Count; i++)
             {
@@ -159,13 +143,12 @@ namespace MauiSpaceInvaders.SpaceInvaders
                 canvas.DrawPath(alienPath);
             }
 
-
             //Remove bullets that leave screen
             _bullets.RemoveAll(x => x.Y < 0);
         }
         
         /// <summary>
-        /// TODO create PR to add ParseSVGPathData to Maui.Graphics
+        /// TODO Create PR to add ParseSVGPathData to Maui.Graphics
         /// </summary>
         /// <param name="points"></param>
         /// <returns></returns>
@@ -208,7 +191,6 @@ namespace MauiSpaceInvaders.SpaceInvaders
                 alien.Transform(SKMatrix.CreateScale(alienScaleX, alienScaleY));
 
                 //how many aliens fit into legnth
-                //TODO can this be moved outside the loop?
                 var scaledAlienLength = (_info.Width - ButtonDiameter) / (alien.Bounds.Width + AlienSpacing);
                 var columnCount = Convert.ToInt32(scaledAlienLength - 2);
 
@@ -227,8 +209,14 @@ namespace MauiSpaceInvaders.SpaceInvaders
             _aliensLoaded = true;
         }
 
+        /// <summary>
+        /// Presents end game UI
+        /// </summary>
+        /// <param name="canvas"></param>
+        /// <param name="title"></param>
         private void PresentEndGame(ICanvas canvas, string title)
         {
+            IsGameOver = true;
             canvas.ResetState();
 
             canvas.FontColor = Colors.White;
@@ -262,7 +250,7 @@ namespace MauiSpaceInvaders.SpaceInvaders
             }
         }
 
-        //There is an issue  with Maui Essentials DisplayInfo so we must manually assign for now
+        //TODO There is an issue  with Maui Essentials DisplayInfo so we must static assign fake dimensions for now
         private const int Width = 800;
         private const int Height = 1000;
        

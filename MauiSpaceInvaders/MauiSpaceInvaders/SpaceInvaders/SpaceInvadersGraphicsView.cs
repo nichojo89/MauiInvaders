@@ -5,17 +5,18 @@ namespace MauiSpaceInvaders.SpaceInvaders
 {
     internal class SpaceInvadersGraphicsView : GraphicsView
     {
-        public static readonly BindableProperty XAxisPoperty = BindableProperty.Create(nameof(XAxis),
+        public static readonly BindableProperty XAxisScaleProperty = BindableProperty.Create(nameof(XAxisScale),
             typeof(double),
             typeof(SpaceInvadersGraphicsView),
             0.5,
             propertyChanged: (b,o,n) => {
                 Drawable.XAxis = (double)n;
             });
-        public double XAxis
+
+        public double XAxisScale
         {
-            get => (double)GetValue(XAxisPoperty);
-            set => SetValue(XAxisPoperty, value);
+            get => (double)GetValue(XAxisScaleProperty);
+            set => SetValue(XAxisScaleProperty, value);
         }
 
         public static ICommand Fire = new Command(() =>
