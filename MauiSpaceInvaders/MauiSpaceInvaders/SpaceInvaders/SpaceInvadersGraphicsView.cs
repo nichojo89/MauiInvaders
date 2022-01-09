@@ -19,17 +19,12 @@ namespace MauiSpaceInvaders.SpaceInvaders
             set => SetValue(XAxisScaleProperty, value);
         }
 
-        public static ICommand Fire = new Command(() =>
-        {
-            //ButtonText = "s";
-            Drawable.Fire(true);
-        });
+        public static ICommand Fire = new Command(() => Drawable.Fire(true));
 
 
         public static SpaceInvadersDrawable Drawable;
         public SpaceInvadersGraphicsView()
         {
-            //ButtonText = Drawable.IsGameOver ? Constants.Play : Constants.Fire;
             base.Drawable = Drawable = new SpaceInvadersDrawable();
 
             var ms = 1000.0 / _fps;
@@ -38,9 +33,14 @@ namespace MauiSpaceInvaders.SpaceInvaders
         }
         private bool TimerLoop()
         {
+            if (_stopWatch.Elapsed.Seconds == 1 || _stopWatch.Elapsed.Seconds > _elapsedSeconds)
+            {
+                
+                _elapsedSeconds = _stopWatch.Elapsed.Seconds;
+            }
+
             // get the elapsed time from the stopwatch because the 1/30 timer interval is not accurate and can be off by 2 ms
             var dt = _stopWatch.Elapsed.TotalSeconds;
-
             _stopWatch.Restart();
 
             // calculate current fps
@@ -51,10 +51,16 @@ namespace MauiSpaceInvaders.SpaceInvaders
                 return true;
 
             _fpsCount++;
+            _fpsElapsed++;
 
             if (_fpsCount == 20)
-            {
                 _fpsCount = 0;
+
+            //Its been a second
+            if (_fpsElapsed == _fps)
+            {
+                _fpsElapsed = 0;
+                Drawable.AlienFire();
             }
 
             Invalidate();
@@ -62,7 +68,9 @@ namespace MauiSpaceInvaders.SpaceInvaders
             return true;
         }
 
+        private int _fpsElapsed;
         private int _fpsCount = 0;
+        private long _elapsedSeconds;
         private const double _fps = 30;
         private readonly Stopwatch _stopWatch = new Stopwatch();
     }

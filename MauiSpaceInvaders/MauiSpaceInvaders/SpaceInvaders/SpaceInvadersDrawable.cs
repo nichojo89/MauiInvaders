@@ -7,6 +7,7 @@ namespace MauiSpaceInvaders.SpaceInvaders
     {
         public double XAxis { get; set; }
         public bool IsGameOver { get; set; }
+        public int AlienFireRate { get; set; }
 
         public string ButtonText
         {
@@ -20,45 +21,32 @@ namespace MauiSpaceInvaders.SpaceInvaders
 
         public SpaceInvadersDrawable()
         {
-            //TODO EnableTouchEvents = true;
-
-
-            try
-            {
-                
-                _dpi = DeviceDisplay.MainDisplayInfo.Density;
-            }
-            catch (Exception e)
-            {
-                _dpi = 3;
-            }
             XAxis = 0.5;
-           
-
-            _primaryPaint = new SKPaint()
-            {
-                TextSize = 100,
-                Color = new SKColor(50, 205, 50)
-            };
-
-
-            _secondaryPaint = new SKPaint()
-            {
-                TextSize = 36,
-                Color = Color.FromHex("#000000").AsSKColor()
-            };
-            ButtonText = "Test";
+            AlienFireRate = 1;
+            ButtonText = Constants.Fire;
         }
 
-        
+        /// <summary>
+        /// Fires alien shot
+        /// </summary>
+        public  void AlienFire()
+        {
+            if (_aliens.Count() == 0)
+            {
+                return;
+            }
 
-        
+            var rdm = new Random();
+            var activeShooters = _aliens.TakeLast(_columnCount);
+            var shooterIndex = rdm.Next(activeShooters.Count());
+            var shooter = activeShooters.ElementAt(shooterIndex);
+            var bullet = new Bullet(new SKPoint(shooter.Bounds.MidX, shooter.Bounds.MidY), false);
+            Fire(false, bullet);
+        }
+
         public void Draw(ICanvas canvas, RectangleF dirtyRect)
         {
             _info = dirtyRect;
-
-            const string YouWin = "YOU WIN";
-            const string GameOver = "GAME OVER";
 
             if (!_aliensLoaded)
                 LoadAliens();
@@ -73,24 +61,20 @@ namespace MauiSpaceInvaders.SpaceInvaders
                 if (IsGameOver || _aliens.Count == 0)
                 {
                     PresentEndGame(canvas, _aliens.Count == 0
-                        ? YouWin
-                        : GameOver);
+                        ? Constants.YouWin
+                        : Constants.GameOver);
                     return;
                 }
             }
 
-            //TODO did this work?
             canvas.ResetState();
 
             var jet = SKPath.ParseSvgPathData(Constants.JetSVG);
 
-            _jet = new PathF();
-
             _jet = ParseSVGPathData(jet.Points);
             
-            //TODO make _primaryPaint
             canvas.StrokeColor = Colors.Green;
-            //canvas.FillColor = Colors.Green;
+            canvas.FillColor = Colors.Green;
 
             // calculate the scaling need to fit to screen
             var scaleX = 100 / _jet.Bounds.Width;
@@ -106,17 +90,17 @@ namespace MauiSpaceInvaders.SpaceInvaders
             _jetMidX = _jet.Bounds.Center.X;
 
             // draw the jet
-            canvas.DrawPath(_jet);
+            canvas.FillPath(_jet);
 
             //Draw bullets
             for (int i = _bullets.Count - 1; i > -1; i--)
             {
-                _bullets[i] = new SKPoint(_bullets[i].X, _bullets[i].Y - BulletSpeed);
-                canvas.DrawCircle(_bullets[i].AsPointF(), BulletDiameter);
+                _bullets[i].Point = new SKPoint(_bullets[i].Point.X, _bullets[i].Point.Y + (_bullets[i].IsPlayer ? BulletSpeed * -1 : BulletSpeed));
+                canvas.FillCircle(_bullets[i].Point.AsPointF(), BulletDiameter);
 
-                var alienTarged = _aliens.Any(alien => alien.Contains(_bullets[i].X, _bullets[i].Y));
+                var alienTarged = _aliens.Any(alien => alien.Contains(_bullets[i].Point.X, _bullets[i].Point.Y));
                 //Remove any aliens touched by the bullet
-                _aliens.RemoveAll(alien => alien.Contains(_bullets[i].X, _bullets[i].Y));
+                _aliens.RemoveAll(alien => alien.Contains(_bullets[i].Point.X, _bullets[i].Point.Y));
                 //Remove bullet that touched alien
                 if (alienTarged)
                     _bullets.RemoveAt(i);
@@ -140,11 +124,11 @@ namespace MauiSpaceInvaders.SpaceInvaders
                 _aliens[i].Transform(alienMatrix);
 
                 var alienPath = ParseSVGPathData(_aliens[i].Points);
-                canvas.DrawPath(alienPath);
+                canvas.FillPath(alienPath);
             }
 
             //Remove bullets that leave screen
-            _bullets.RemoveAll(x => x.Y < 0);
+            _bullets.RemoveAll(x => x.Point.Y < 0);
         }
         
         /// <summary>
@@ -176,6 +160,9 @@ namespace MauiSpaceInvaders.SpaceInvaders
             return path;
         }
 
+        /// <summary>
+        /// Loads alien landing coordinates
+        /// </summary>
         private void LoadAliens()
         {
             const int AlienCount = 35;
@@ -192,10 +179,10 @@ namespace MauiSpaceInvaders.SpaceInvaders
 
                 //how many aliens fit into legnth
                 var scaledAlienLength = (_info.Width - ButtonDiameter) / (alien.Bounds.Width + AlienSpacing);
-                var columnCount = Convert.ToInt32(scaledAlienLength - 2);
+                _columnCount = Convert.ToInt32(scaledAlienLength - 2);
 
-                var columnIndex = i % columnCount;
-                var rowIndex = Math.Floor(i / (double)columnCount);
+                var columnIndex = i % _columnCount;
+                var rowIndex = Math.Floor(i / (double)_columnCount);
 
                 var x = alien.Bounds.Width * (columnIndex + 1) + (AlienSpacing * (columnIndex + 1));
                 var y = alien.Bounds.Height * (rowIndex + 1) + (AlienSpacing * (rowIndex + 1));
@@ -224,7 +211,6 @@ namespace MauiSpaceInvaders.SpaceInvaders
             canvas.DrawString(title, _info.Center.X, _info.Center.Y, HorizontalAlignment.Center);
 
             ButtonText = Constants.Play;
-
         }
 
         /// <summary>
@@ -232,7 +218,7 @@ namespace MauiSpaceInvaders.SpaceInvaders
         /// </summary>
         /// <param name="isPlayer"></param>
         /// <param name="startingPosition"></param>
-        public void Fire(bool isPlayer, SKPoint? startingPosition = null)
+        public void Fire(bool isPlayer, Bullet startingPosition = null)
         {
             if (IsGameOver)
             {
@@ -245,7 +231,10 @@ namespace MauiSpaceInvaders.SpaceInvaders
             else {
                 if (isPlayer)
                 {
-                    _bullets.Add(new SKPoint(_jetMidX, _info.Height - _jet.Bounds.Height - BulletDiameter - 20));
+                    _bullets.Add(new Bullet(new SKPoint(_jetMidX, _info.Height - _jet.Bounds.Height - BulletDiameter - 20), true));
+                }
+                else {
+                    _bullets.Add(startingPosition);
                 }
             }
         }
@@ -253,7 +242,7 @@ namespace MauiSpaceInvaders.SpaceInvaders
         //TODO There is an issue  with Maui Essentials DisplayInfo so we must static assign fake dimensions for now
         private const int Width = 800;
         private const int Height = 1000;
-       
+
         private const float Scale = 0.4f;
         private const int AlienSpeed = 5;
         private const int BulletSpeed = 10;
@@ -261,15 +250,13 @@ namespace MauiSpaceInvaders.SpaceInvaders
         private const int ButtonDiameter = 100;
 
         private PathF _jet;
-        private double _dpi;
         private float _jetMidX;
+        private int _columnCount;
         private RectangleF _info;
         private string _buttonText;
         private bool _aliensLoaded;
-        private SKPaint _primaryPaint;
-        private SKPaint _secondaryPaint;
         private bool _aliensSwarmingRight;
         private List<SKPath> _aliens = new List<SKPath>();
-        private List<SKPoint> _bullets = new List<SKPoint>();
+        private List<Bullet> _bullets = new List<Bullet>();
     }
 }
