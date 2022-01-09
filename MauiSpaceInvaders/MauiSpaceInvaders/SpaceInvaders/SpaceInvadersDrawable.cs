@@ -3,9 +3,20 @@ using SkiaSharp;
 
 namespace MauiSpaceInvaders.SpaceInvaders
 {
-    internal class SpaceInvadersDrawable : IDrawable
+    internal class SpaceInvadersDrawable : View, IDrawable
     {
         public double XAxis { get; set; }
+        public bool IsGameOver { get; set; }
+
+        public string ButtonText
+        {
+            get => _buttonText;
+            set
+            {
+                _buttonText = value;
+                OnPropertyChanged();
+            }
+        }
 
         public SpaceInvadersDrawable()
         {
@@ -36,16 +47,16 @@ namespace MauiSpaceInvaders.SpaceInvaders
                 TextSize = 36,
                 Color = Color.FromHex("#000000").AsSKColor()
             };
-            
+            ButtonText = "Test";
         }
 
+        
 
+        
         public void Draw(ICanvas canvas, RectangleF dirtyRect)
         {
-            //TODO aliens are not attacking
             _info = dirtyRect;
 
-            const string Fire = "Fire";
             const string YouWin = "YOU WIN";
             const string GameOver = "GAME OVER";
 
@@ -55,12 +66,12 @@ namespace MauiSpaceInvaders.SpaceInvaders
             if (_aliens.Count == -1)
             {
                 //TODO code smell
-                _isGameOver = true;
+                IsGameOver = true;
                 PresentEndGame(canvas, YouWin);
                 return;
             }
 
-            if (_isGameOver)
+            if (IsGameOver)
             {
                 PresentEndGame(canvas, GameOver);
                 return;
@@ -85,7 +96,7 @@ namespace MauiSpaceInvaders.SpaceInvaders
             _jet.Transform(jetScaleMatrix);
 
             var jetTranslationMatrix = System.Numerics.Matrix3x2.CreateTranslation((float)(XAxis * (_info.Width - _jet.Bounds.Width)),
-                 _info.Height - _jet.Bounds.Height - _bulletDiameter);
+                 _info.Height - _jet.Bounds.Height - BulletDiameter);
             
             _jet.Transform(jetTranslationMatrix);
 
@@ -97,8 +108,8 @@ namespace MauiSpaceInvaders.SpaceInvaders
             //Draw bullets
             for (int i = _bullets.Count - 1; i > -1; i--)
             {
-                _bullets[i] = new SKPoint(_bullets[i].X, _bullets[i].Y - _bulletSpeed);
-                canvas.DrawCircle(_bullets[i].AsPointF(), _bulletDiameter);
+                _bullets[i] = new SKPoint(_bullets[i].X, _bullets[i].Y - BulletSpeed);
+                canvas.DrawCircle(_bullets[i].AsPointF(), BulletDiameter);
 
                 var alienTarged = _aliens.Any(alien => alien.Contains(_bullets[i].X, _bullets[i].Y));
                 //Remove any aliens touched by the bullet
@@ -116,19 +127,19 @@ namespace MauiSpaceInvaders.SpaceInvaders
             _aliensSwarmingRight = switched ? !_aliensSwarmingRight : _aliensSwarmingRight;
 
             //Has an alien hit the ships y axis?
-            _isGameOver = _aliens
+            IsGameOver = _aliens
                 .Select(x => x.Bounds.Bottom)
                 .Any(x => x > _jet.Bounds.Top);
 
             if (_aliens.Count == 0)
             {
                 //TODO code smell
-                _isGameOver = true;
+                IsGameOver = true;
                 PresentEndGame(canvas, YouWin);
                 return;
             }
 
-            if (_isGameOver)
+            if (IsGameOver)
             {
                 PresentEndGame(canvas, GameOver);
                 return;
@@ -139,7 +150,7 @@ namespace MauiSpaceInvaders.SpaceInvaders
             {
                 //Move Aliens
                 var alienMatrix = SKMatrix.CreateTranslation(
-                _aliensSwarmingRight ? _alienSpeed : _alienSpeed * -1,
+                _aliensSwarmingRight ? AlienSpeed : AlienSpeed * -1,
                 switched ? 50 : 0);
 
                 _aliens[i].Transform(alienMatrix);
@@ -198,7 +209,7 @@ namespace MauiSpaceInvaders.SpaceInvaders
 
                 //how many aliens fit into legnth
                 //TODO can this be moved outside the loop?
-                var scaledAlienLength = (_info.Width - _buttonDiameter) / (alien.Bounds.Width + AlienSpacing);
+                var scaledAlienLength = (_info.Width - ButtonDiameter) / (alien.Bounds.Width + AlienSpacing);
                 var columnCount = Convert.ToInt32(scaledAlienLength - 2);
 
                 var columnIndex = i % columnCount;
@@ -218,30 +229,26 @@ namespace MauiSpaceInvaders.SpaceInvaders
 
         private void PresentEndGame(ICanvas canvas, string title)
         {
-            //TODO did that work canvas.Clear();
             canvas.ResetState();
 
             canvas.FontColor = Colors.White;
             canvas.FontSize = 40;
-
-            //var textWidth = _primaryPaint.MeasureText(title);
-            //IAttributedText attributedText =  MarkdownAttributedTextReader.Read(title);
             canvas.DrawString(title, _info.Center.X, _info.Center.Y, HorizontalAlignment.Center);
-            //canvas.DrawText(attributedText, _info.Center.X - (textWidth / 2), _info.Center.Y,99,99, _primaryPaint);
 
+            ButtonText = Constants.Play;
 
-            //TODO canvas.DrawPath(_buttonPath, _primaryPaint);
-            var width = _secondaryPaint.MeasureText("Play");
-            //TODO canvas.DrawText("Play", new SKPoint(buttonCentre.X - (width / 2), buttonCentre.Y + (_secondaryPaint.TextSize / 3)), _secondaryPaint);
         }
 
-
-
+        /// <summary>
+        /// Fires bullet for 
+        /// </summary>
+        /// <param name="isPlayer"></param>
+        /// <param name="startingPosition"></param>
         public void Fire(bool isPlayer, SKPoint? startingPosition = null)
         {
-            if (_isGameOver)
+            if (IsGameOver)
             {
-                _isGameOver = false;
+                IsGameOver = false;
 
                 _aliens.Clear();
                 _bullets.Clear();
@@ -250,28 +257,29 @@ namespace MauiSpaceInvaders.SpaceInvaders
             else {
                 if (isPlayer)
                 {
-                    _bullets.Add(new SKPoint(_jetMidX, _info.Height - _jet.Bounds.Height - _bulletDiameter - 20));
+                    _bullets.Add(new SKPoint(_jetMidX, _info.Height - _jet.Bounds.Height - BulletDiameter - 20));
                 }
             }
         }
 
         //There is an issue  with Maui Essentials DisplayInfo so we must manually assign for now
-        private int _height = 1000;
-        private int _width = 800;
-
+        private const int Width = 800;
+        private const int Height = 1000;
+       
         private const float Scale = 0.4f;
-        private float _jetMidX;
+        private const int AlienSpeed = 5;
+        private const int BulletSpeed = 10;
+        private const int BulletDiameter = 4;
+        private const int ButtonDiameter = 100;
+
         private PathF _jet;
         private double _dpi;
-        private bool _isGameOver;
+        private float _jetMidX;
         private RectangleF _info;
+        private string _buttonText;
         private bool _aliensLoaded;
-        private int _alienSpeed = 5;
-        private int _bulletSpeed = 10;
         private SKPaint _primaryPaint;
-        private int _bulletDiameter = 4;
         private SKPaint _secondaryPaint;
-        private int _buttonDiameter = 100;
         private bool _aliensSwarmingRight;
         private List<SKPath> _aliens = new List<SKPath>();
         private List<SKPoint> _bullets = new List<SKPoint>();

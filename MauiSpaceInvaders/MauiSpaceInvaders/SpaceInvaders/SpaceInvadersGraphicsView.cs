@@ -20,12 +20,15 @@ namespace MauiSpaceInvaders.SpaceInvaders
 
         public static ICommand Fire = new Command(() =>
         {
+            //ButtonText = "s";
             Drawable.Fire(true);
         });
+
 
         public static SpaceInvadersDrawable Drawable;
         public SpaceInvadersGraphicsView()
         {
+            //ButtonText = Drawable.IsGameOver ? Constants.Play : Constants.Fire;
             base.Drawable = Drawable = new SpaceInvadersDrawable();
 
             var ms = 1000.0 / _fps;
@@ -57,7 +60,6 @@ namespace MauiSpaceInvaders.SpaceInvaders
 
             return true;
         }
-
 
         private int _fpsCount = 0;
         private const double _fps = 30;

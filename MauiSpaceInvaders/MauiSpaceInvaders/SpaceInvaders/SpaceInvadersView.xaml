@@ -18,7 +18,7 @@
 												 WidthRequest="1200"
 												 HeightRequest="650"
                                                  x:Name="spaceInvaders" />
-        <Button Text="Fire"
+        <Button Text="{Binding Source={x:Reference spaceInvaders}, Path=Drawable.ButtonText}"
 				Grid.Row="0"
 				Grid.Column="1"
 				BackgroundColor="Green"
