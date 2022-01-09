@@ -226,6 +226,16 @@ namespace MauiSpaceInvaders.SpaceInvaders
             //TODO canvas.DrawText("Play", new SKPoint(buttonCentre.X - (width / 2), buttonCentre.Y + (_secondaryPaint.TextSize / 3)), _secondaryPaint);
         }
 
+
+
+        public void Fire(bool isPlayer, SKPoint? startingPosition = null)
+        {
+            if (isPlayer)
+            {
+                _bullets.Add(new SKPoint((float)XAxis, _info.Height - _jet.Bounds.Height - _bulletDiameter - 20));
+            }
+        }
+
         //There is an issue  with Maui Essentials DisplayInfo so we must manually assign for now
         private int _height = 650;
         private int _width = 800;

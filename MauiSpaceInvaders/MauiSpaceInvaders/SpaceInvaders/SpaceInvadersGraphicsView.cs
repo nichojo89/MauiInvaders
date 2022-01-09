@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Windows.Input;
 
 namespace MauiSpaceInvaders.SpaceInvaders
 {
@@ -16,6 +17,12 @@ namespace MauiSpaceInvaders.SpaceInvaders
             get => (double)GetValue(XAxisPoperty);
             set => SetValue(XAxisPoperty, value);
         }
+
+        public static ICommand Fire = new Command(() =>
+        {
+            Drawable.Fire(true);
+        });
+
         public static SpaceInvadersDrawable Drawable;
         public SpaceInvadersGraphicsView()
         {

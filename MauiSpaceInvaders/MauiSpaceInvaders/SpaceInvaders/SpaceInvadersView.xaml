@@ -21,7 +21,8 @@
 				Grid.Row="0"
 				Grid.Column="1"
 				BackgroundColor="Green"
-				VerticalOptions="EndAndExpand"/>
+				VerticalOptions="EndAndExpand"
+                Command="{Binding ., Source={x:Static spaceInvaders:SpaceInvadersGraphicsView.Fire}}"/>
         <Slider Margin="10"
                 Maximum="1"
 				Grid.Row="1"
@@ -29,6 +30,6 @@
 				ThumbColor="Green"
 				MaximumTrackColor="Red" 
 				MinimumTrackColor="Blue"
-                Value="{Binding Source={x:Reference spaceInvaders}, Path=XAxis,Mode=TwoWay}"/>
+                Value="{Binding Source={x:Reference spaceInvaders}, Path=XAxis}"/>
     </Grid>
 </ContentView>
