@@ -21,7 +21,7 @@ namespace MauiSpaceInvaders.SpaceInvaders
             {
                 _dpi = 3;
             }
-
+            XAxis = 0.5;
            
 
             _primaryPaint = new SKPaint()
@@ -81,13 +81,15 @@ namespace MauiSpaceInvaders.SpaceInvaders
             // calculate the scaling need to fit to screen
             var scaleX = 100 / _jet.Bounds.Width;
 
-            var jetScaleMatrix = System.Numerics.Matrix3x2.CreateScale(0.4f);
+            var jetScaleMatrix = System.Numerics.Matrix3x2.CreateScale(Scale);
             _jet.Transform(jetScaleMatrix);
 
             var jetTranslationMatrix = System.Numerics.Matrix3x2.CreateTranslation((float)(XAxis * (_info.Width - _jet.Bounds.Width)),
                  _info.Height - _jet.Bounds.Height - _bulletDiameter);
             
             _jet.Transform(jetTranslationMatrix);
+
+            _jetMidX = _jet.Bounds.Center.X;
 
             // draw the jet
             canvas.DrawPath(_jet);
@@ -172,8 +174,6 @@ namespace MauiSpaceInvaders.SpaceInvaders
             return path;
         }
 
-     
-
         private void LoadAliens()
         {
             const int AlienCount = 35;
@@ -232,7 +232,7 @@ namespace MauiSpaceInvaders.SpaceInvaders
         {
             if (isPlayer)
             {
-                _bullets.Add(new SKPoint((float)XAxis, _info.Height - _jet.Bounds.Height - _bulletDiameter - 20));
+                _bullets.Add(new SKPoint(_jetMidX, _info.Height - _jet.Bounds.Height - _bulletDiameter - 20));
             }
         }
 
@@ -240,6 +240,8 @@ namespace MauiSpaceInvaders.SpaceInvaders
         private int _height = 650;
         private int _width = 800;
 
+        private const float Scale = 0.4f;
+        private float _jetMidX;
         private PathF _jet;
         private double _dpi;
         private bool _isGameOver;
