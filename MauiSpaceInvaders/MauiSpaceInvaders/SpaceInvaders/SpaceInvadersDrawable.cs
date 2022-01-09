@@ -119,7 +119,15 @@ namespace MauiSpaceInvaders.SpaceInvaders
             _isGameOver = _aliens
                 .Select(x => x.Bounds.Bottom)
                 .Any(x => x > _jet.Bounds.Top);
-            _isGameOver = false;
+
+            if (_aliens.Count == 0)
+            {
+                //TODO code smell
+                _isGameOver = true;
+                PresentEndGame(canvas, YouWin);
+                return;
+            }
+
             if (_isGameOver)
             {
                 PresentEndGame(canvas, GameOver);
@@ -213,12 +221,13 @@ namespace MauiSpaceInvaders.SpaceInvaders
             //TODO did that work canvas.Clear();
             canvas.ResetState();
 
+            canvas.FontColor = Colors.White;
+            canvas.FontSize = 40;
 
-
-            var textWidth = _primaryPaint.MeasureText(title);
+            //var textWidth = _primaryPaint.MeasureText(title);
             //IAttributedText attributedText =  MarkdownAttributedTextReader.Read(title);
-
-            //TODO canvas.DrawText(attributedText, _info.Center.X - (textWidth / 2), _info.Center.Y,99,99, _primaryPaint);
+            canvas.DrawString(title, _info.Center.X, _info.Center.Y, HorizontalAlignment.Center);
+            //canvas.DrawText(attributedText, _info.Center.X - (textWidth / 2), _info.Center.Y,99,99, _primaryPaint);
 
 
             //TODO canvas.DrawPath(_buttonPath, _primaryPaint);
@@ -230,14 +239,24 @@ namespace MauiSpaceInvaders.SpaceInvaders
 
         public void Fire(bool isPlayer, SKPoint? startingPosition = null)
         {
-            if (isPlayer)
+            if (_isGameOver)
             {
-                _bullets.Add(new SKPoint(_jetMidX, _info.Height - _jet.Bounds.Height - _bulletDiameter - 20));
+                _isGameOver = false;
+
+                _aliens.Clear();
+                _bullets.Clear();
+                LoadAliens();
+            }
+            else {
+                if (isPlayer)
+                {
+                    _bullets.Add(new SKPoint(_jetMidX, _info.Height - _jet.Bounds.Height - _bulletDiameter - 20));
+                }
             }
         }
 
         //There is an issue  with Maui Essentials DisplayInfo so we must manually assign for now
-        private int _height = 650;
+        private int _height = 1000;
         private int _width = 800;
 
         private const float Scale = 0.4f;
@@ -247,7 +266,7 @@ namespace MauiSpaceInvaders.SpaceInvaders
         private bool _isGameOver;
         private RectangleF _info;
         private bool _aliensLoaded;
-        private int _alienSpeed = 10;
+        private int _alienSpeed = 5;
         private int _bulletSpeed = 10;
         private SKPaint _primaryPaint;
         private int _bulletDiameter = 4;
