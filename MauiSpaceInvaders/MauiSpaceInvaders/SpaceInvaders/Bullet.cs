@@ -1,13 +1,11 @@
-﻿using SkiaSharp;
-
-namespace MauiSpaceInvaders.SpaceInvaders
+﻿namespace MauiSpaceInvaders.SpaceInvaders
 {
     internal class Bullet
     {
-        public SKPoint Point { get; set; }
+        public PointF Point { get; set; }
         public bool IsPlayer { get; set; }
 
-        public Bullet(SKPoint point, bool isPlayer)
+        public Bullet(PointF point, bool isPlayer)
         {
             Point = point;
             IsPlayer = isPlayer;

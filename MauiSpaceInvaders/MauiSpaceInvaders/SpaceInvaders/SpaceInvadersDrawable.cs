@@ -1,5 +1,6 @@
 ﻿using Microsoft.Maui.Graphics.Skia;
 using SkiaSharp;
+using System.Numerics;
 
 namespace MauiSpaceInvaders.SpaceInvaders
 {
@@ -40,7 +41,7 @@ namespace MauiSpaceInvaders.SpaceInvaders
             var activeShooters = _aliens.TakeLast(_columnCount);
             var shooterIndex = rdm.Next(activeShooters.Count());
             var shooter = activeShooters.ElementAt(shooterIndex);
-            var bullet = new Bullet(new SKPoint(shooter.Bounds.MidX, shooter.Bounds.MidY), false);
+            var bullet = new Bullet(new PointF(shooter.Bounds.Center.X, shooter.Bounds.Bottom + 20), false);
             Fire(false, bullet);
         }
 
@@ -71,7 +72,7 @@ namespace MauiSpaceInvaders.SpaceInvaders
 
             var jet = SKPath.ParseSvgPathData(Constants.JetSVG);
 
-            _jet = ParseSVGPathData(jet.Points);
+            _jet = PointsToPath(jet.Points);
             
             canvas.StrokeColor = Colors.Green;
             canvas.FillColor = Colors.Green;
@@ -79,10 +80,10 @@ namespace MauiSpaceInvaders.SpaceInvaders
             //Calculate the scaling need to fit to screen
             var scaleX = 100 / _jet.Bounds.Width;
 
-            var jetScaleMatrix = System.Numerics.Matrix3x2.CreateScale(Scale);
+            var jetScaleMatrix = Matrix3x2.CreateScale(Scale);
             _jet.Transform(jetScaleMatrix);
 
-            var jetTranslationMatrix = System.Numerics.Matrix3x2.CreateTranslation((float)(XAxis * (_info.Width - _jet.Bounds.Width)),
+            var jetTranslationMatrix = Matrix3x2.CreateTranslation((float)(XAxis * (_info.Width - _jet.Bounds.Width)),
                  _info.Height - _jet.Bounds.Height - BulletDiameter);
             
             _jet.Transform(jetTranslationMatrix);
@@ -102,12 +103,12 @@ namespace MauiSpaceInvaders.SpaceInvaders
             //Draw bullets
             for (int i = _bullets.Count - 1; i > -1; i--)
             {
-                _bullets[i].Point = new SKPoint(_bullets[i].Point.X, _bullets[i].Point.Y + (_bullets[i].IsPlayer ? BulletSpeed * -1 : BulletSpeed));
-                canvas.FillCircle(_bullets[i].Point.AsPointF(), BulletDiameter);
+                _bullets[i].Point = new PointF(_bullets[i].Point.X, _bullets[i].Point.Y + (_bullets[i].IsPlayer ? BulletSpeed * -1 : BulletSpeed));
+                canvas.FillCircle(_bullets[i].Point, BulletDiameter);
 
-                var alienTarged = _aliens.Any(alien => alien.Contains(_bullets[i].Point.X, _bullets[i].Point.Y));
+                var alienTarged = _aliens.Any(alien => alien.Bounds.Contains(_bullets[i].Point.X, _bullets[i].Point.Y));
                 //Remove any aliens touched by the bullet
-                _aliens.RemoveAll(alien => alien.Contains(_bullets[i].Point.X, _bullets[i].Point.Y));
+                _aliens.RemoveAll(alien => alien.Bounds.Contains(_bullets[i].Point.X, _bullets[i].Point.Y));
                 //Remove bullet that touched alien
                 if (alienTarged)
                     _bullets.RemoveAt(i);
@@ -124,29 +125,42 @@ namespace MauiSpaceInvaders.SpaceInvaders
             for (var i = 0; i < _aliens.Count; i++)
             {
                 //Move Aliens
-                var alienMatrix = SKMatrix.CreateTranslation(
+                var alienMatrix = Matrix3x2.CreateTranslation(
                 _aliensSwarmingRight ? AlienSpeed : AlienSpeed * -1,
                 switched ? 50 : 0);
 
                 _aliens[i].Transform(alienMatrix);
 
-                var alienPath = ParseSVGPathData(_aliens[i].Points);
+                //TODO There is no way to convert PathF to SKPath for our SVG work around
+                var points = _aliens[i].Points.Select(p => new SKPoint(p.X, p.Y)).ToArray();
+                var alienPath = PointsToPath(points);
                 canvas.FillPath(alienPath);
             }
 
             //Remove bullets that leave screen
             _bullets.RemoveAll(x => x.Point.Y < 0);
         }
-        
+
         /// <summary>
         /// TODO Raise issue to add ParseSVGPathData to PathF in Maui.Graphics
         /// </summary>
+        /// <param name="pathM">path of SVG</param>
+        /// <returns>Path of the points</returns>
+        private PathF ParseSVGPathData(string pathM)
+        {
+            var skPath = SKPath.ParseSvgPathData(pathM);
+            return PointsToPath(skPath.Points);
+        }
+
+        /// <summary>
+        /// Converts SKPoints to PathF
+        /// </summary>
         /// <param name="points"></param>
         /// <returns></returns>
-        private PathF ParseSVGPathData(SKPoint[] points)
+        private PathF PointsToPath(SKPoint[] points)
         {
             var path = new PathF();
-            for (int i = 0; i < points.Count(); i++)
+            for (var i = 0; i < points.Count(); i++)
             {
                 var point = new PointF(points[i].X, points[i].Y);
 
@@ -177,12 +191,13 @@ namespace MauiSpaceInvaders.SpaceInvaders
 
             for (var i = 0; i < AlienCount; i++)
             {
-                var alien = SKPath.ParseSvgPathData(Constants.AlienSVG);
+                var alien = ParseSVGPathData(Constants.AlienSVG);
+
                 var alienLength =  30;
                 var alienScaleX = alienLength / alien.Bounds.Width;
                 var alienScaleY = alienLength / alien.Bounds.Height;
 
-                alien.Transform(SKMatrix.CreateScale(alienScaleX, alienScaleY));
+                alien.Transform(Matrix3x2.CreateScale(alienScaleX, alienScaleY));
 
                 //how many aliens fit into legnth
                 var scaledAlienLength = (_info.Width - ButtonDiameter) / (alien.Bounds.Width + AlienSpacing);
@@ -192,9 +207,9 @@ namespace MauiSpaceInvaders.SpaceInvaders
                 var rowIndex = Math.Floor(i / (double)_columnCount);
 
                 var x = alien.Bounds.Width * (columnIndex + 1) + (AlienSpacing * (columnIndex + 1));
-                var y = alien.Bounds.Height * (rowIndex + 1) + (AlienSpacing * (rowIndex + 1));
+                var y = (float)(alien.Bounds.Height * (rowIndex + 1) + (AlienSpacing * (rowIndex + 1)));
 
-                var alienTranslateMatrix = SKMatrix.CreateTranslation((float)x, (float)y);
+                var alienTranslateMatrix = Matrix3x2.CreateTranslation(x, y);
 
                 alien.Transform(alienTranslateMatrix);
                 _aliens.Add(alien);
@@ -247,7 +262,7 @@ namespace MauiSpaceInvaders.SpaceInvaders
             {
                 if (isPlayer)
                 {
-                    _bullets.Add(new Bullet(new SKPoint(_jetMidX, _info.Height - _jet.Bounds.Height - BulletDiameter - 20), true));
+                    _bullets.Add(new Bullet(new PointF(_jetMidX, _info.Height - _jet.Bounds.Height - BulletDiameter - 20), true));
                 }
                 else
                 {
@@ -273,7 +288,7 @@ namespace MauiSpaceInvaders.SpaceInvaders
         private string _buttonText;
         private bool _aliensLoaded;
         private bool _aliensSwarmingRight;
-        private List<SKPath> _aliens = new List<SKPath>();
+        private List<PathF> _aliens = new List<PathF>();
         private List<Bullet> _bullets = new List<Bullet>();
     }
 }
