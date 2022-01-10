@@ -64,7 +64,6 @@ namespace MauiSpaceInvaders.SpaceInvaders
 
         private int _fpsElapsed;
         private int _fpsCount = 0;
-        private long _elapsedSeconds;
         private const double _fps = 30;
         private readonly Stopwatch _stopWatch = new Stopwatch();
     }
